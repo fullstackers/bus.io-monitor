@@ -8,6 +8,51 @@
 
 Monitor you bus.io apps with bus.io-monitor middleware.
 
+```javascript
+
+var bus = require('bus.io')(3000);
+var monitor = require('bus.io-monitor');
+bus.use(monitor());
+
+```
+
+The monitor will collect stats about your bus.io app.  Some kinds of events it will track
+are when messages are going in the bus, beinging handled on the bus, and going to the socket.
+The montior will also keep track of the number of connections to your bus.io app. 
+
+Here we are creating an instance of our monitor and attaching a listener to the `report` event.
+
+```javascript
+var events = require('events');
+var monitor = require('bus.io-monitor')();
+monitor.on('report', function (data) {
+ console.log(data);
+});
+bus.use(montior);
+```
+
+The `report` event is fired every interval and broadcast onto the bus.  Monitor has a built in
+application that will aggregate report events.  It is a good idea to use the app on your bus.io
+master process if using cluser.
+
+```javascript
+var cluster = reuqire('cluster');
+if (Cluster.isMaster) {
+
+    var montior = reuqire('bus.io-monitor');
+    monitor.app().listen(3030);
+
+    for (var i=0; i<require('os').cpus().length; i++) {
+        cluster.fork();
+    }
+    
+    return;
+}
+else {
+    // do your other worker bus.io stuff here
+}
+````
+
 # Installation and Environment Setup
 
 Install node.js (See download and install instructions here: http://nodejs.org/).
