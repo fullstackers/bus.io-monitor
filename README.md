@@ -4,7 +4,7 @@
 
 ![Bus.IO](https://raw.github.com/turbonetix/bus.io/master/logo.png)
 
-# WIP
+# WIP (doesn't run yet!)
 
 Monitor you bus.io apps with bus.io-monitor middleware.
 
