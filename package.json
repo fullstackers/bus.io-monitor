@@ -1,0 +1,32 @@
+{
+  "name": "bus.io-monitor",
+  "version": "0.0.0",
+  "description": "Bus.io application monitoring middleware",
+  "main": "index.js",
+  "scripts": {
+    "test": "grunt"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/turbonetix/bus.io-monitor.git"
+  },
+  "keywords": [
+    "bus.io",
+    "monitor",
+    "middleware"
+  ],
+  "author": "Nathan G. Romano",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/turbonetix/bus.io-monitor/issues"
+  },
+  "homepage": "https://github.com/turbonetix/bus.io-monitor",
+  "devDependencies": {
+    "sandboxed-module": "^1.0.0",
+    "coffee-script": "^1.7.1",
+    "grunt-jasmine-bundle": "^0.2.0",
+    "grunt-cli": "^0.1.13",
+    "grunt": "^0.4.5",
+    "bus.io": "0.0.83-beta"
+  }
+}
