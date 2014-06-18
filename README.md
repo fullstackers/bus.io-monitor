@@ -4,54 +4,241 @@
 
 ![Bus.IO](https://raw.github.com/turbonetix/bus.io/master/logo.png)
 
-# WIP (doesn't run yet!)
-
-Monitor you bus.io apps with bus.io-monitor middleware.
+Monitor you `bus.io` apps with `bus.io-monitor` middleware.
 
 ```javascript
-
 var bus = require('bus.io')(3000);
 var monitor = require('bus.io-monitor');
 bus.use(monitor());
-
 ```
 
-The monitor will collect stats about your bus.io app.  Some kinds of events it will track
-are when messages are going in the bus, beinging handled on the bus, and going to the socket.
-The montior will also keep track of the number of connections to your bus.io app. 
+A full list of options.
 
-Here we are creating an instance of our monitor and attaching a listener to the `report` event.
+The monitor sends messages to the bus so you can configure how it delivers the messages.
+
+```javascript
+var bus = require('bus.io')(3000);
+var monitor = require('bus.io-monitor');
+bus.use(monitor({actor:'bus monitor', target:'bus monitor', action:'monitoring stuff', interval:1000}));
+```
+
+The `monitor` will collect stats about your `bus.io` app.  It keeps track of messages going
+in the bus, on the bus, and going to the socket.  It will trigger a `report` event at an 
+interval.  You can pass the `interval` as an option.
+
+```javascript
+var monitor = require('bus.io-monitor');
+bus.use(monitor({interval:1000});
+```
+
+You can listen to the `report` event and consume it however you best see fit.
 
 ```javascript
 var events = require('events');
 var monitor = require('bus.io-monitor')();
-monitor.on('report', function (data) {
- console.log(data);
+monitor.on('report', function (report) {
+ console.log(report.data());
 });
-bus.use(montior);
+bus.use(monitor);
 ```
 
-The `report` event is fired every interval and broadcast onto the bus.  Monitor has a built in
-application that will aggregate report events.  It is a good idea to use the app on your bus.io
-master process if using cluser.
+The `monitor` has a built-in application that will aggregate `reports` and send them to its clients.
 
 ```javascript
-var cluster = reuqire('cluster');
-if (Cluster.isMaster) {
+var monitor = require('bus.io-monitor');
+monitor.app().listen(3030);
+```
 
-    var montior = reuqire('bus.io-monitor');
-    monitor.app().listen(3030);
+You could use the app in your `master` process if you are using `cluster`.
 
-    for (var i=0; i<require('os').cpus().length; i++) {
-        cluster.fork();
-    }
+```javascript
+var cluster = require('cluster');
+if (cluster.isMaster) {
+
+  var monitor = require('bus.io-monitor');
+  monitor.app().listen(3030);
+
+  for (var i=0; i<require('os').cpus().length; i++)
+    cluster.fork();
     
-    return;
+  return;
 }
-else {
-    // do your other worker bus.io stuff here
-}
+
+// I am the worker!
+
+var express = require('express');
+var app = express();
+app.use(express.static(__dirname + '/public'));
+
+var server = require('http').Server(app).listen(3000);
+
+var session = require('bus.io-session');
+var monitor = require('bus.io-monitor');
+var bus = require('bus.io')(server);
+bus.use(monitor());
+bus.use(session());
 ````
+
+# API
+
+## Monitor
+
+### Monitor#()
+
+```javascript
+var monitor = require('bus.io-monitor')();
+```
+
+### Monitor#(options:Object)
+
+Create a new `monitor` given these options.
+
+```javascript
+var monitor = require('bus.io-monitor')({actor:'me', target:'me', action:'report', interval:1000});
+```
+
+### Monitor#report()
+
+Access the current `report` the `monitor` is populating.
+
+```javascript
+var report = monitor.report();
+```
+
+### Monitor#app()
+
+Gets the built-in application that visual reports the data.
+
+```javascript
+monitor.app().listen(3030);
+```
+
+### Monitor#tick()
+
+You can flush the current `report` and publish it by calling `tick()`;
+
+```javascript
+monitor.on('report', function (report) {
+  console.log('report', report.data());
+});
+monitor.tick();
+```
+
+### Monitor#clearInterval()
+
+This will stop the `tick()` method from being called each interval.
+
+```javascript
+monitor.clearInterval();
+```
+
+### Monitor#setInterval()
+
+This method is called whenever you attach the `monitor` to a `bus`.  However, you
+can always start it again if you happen to clear it.
+
+```javascript
+monitor.setInterval();
+```
+
+#### Events
+
+##### data
+
+Triggered each time we collect data from a `message`.
+
+```javacsript
+monitor.on('data', function (data) {
+  console.log('data');
+});
+```
+
+##### report
+
+Triggered each time the `tick()` method is invoked.
+
+```javascript
+monitor.on('report', function (report) {
+  console.log(report.data());
+});
+```
+
+## Report
+
+A `monitor` populates a `report` with data it receives from the `data` event.
+
+```javascript
+
+var Report = require('bus.io-monitor').Report;
+
+```
+
+### Report#()
+
+Makes a new `report`.
+
+```
+var report = Report();
+```
+
+### Report#data()
+
+Gets all the data for the report.
+
+```javascript
+report.data();
+```
+
+### Report#data(key:String)
+
+Gets the value for the given `key`.
+
+```javascript
+report.data('some.key');
+```
+
+### Report#data(key:String,value:Number)
+
+Sets the `value` for the given `key`.
+
+```javascript
+report.data('some.key', 1);
+```
+
+### Report#combine(report:Report)
+
+Combines the values from the given `report` into the current `report`.
+
+```javascript
+var a = Report();
+a.data('some.key', 1);
+
+var b = Report();
+b.data('some.key', 1);
+
+a.combine(b);
+assert.equal(a.data('some.key'), 2);
+```
+
+### Report#populate(points:Array)
+
+Populates a report by incrementing the values given the points. Or if they do not
+already exist sets them to 1. This may sound confusing so look at the example below.
+
+```javascript
+var data = ['organism', 'insect', 'cricket'];
+report.populate(data);
+```
+
+Now if you call `data()` you will get this output.
+
+```javascript
+{
+  "animal": 1,
+  "animal.insect":1,
+  "animal.insect.cricket":1
+}
+```
 
 # Installation and Environment Setup
 

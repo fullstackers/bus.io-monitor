@@ -17,6 +17,8 @@ describe 'Monitor', ->
     './../app': @app
   }
 
+  Then -> expect(@Monitor.Report).toEqual @Report
+
   describe '#', ->
 
     When -> @res = @Monitor()
