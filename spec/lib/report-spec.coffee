@@ -1,4 +1,4 @@
-xdescribe 'Report', ->
+describe 'Report', ->
 
   Given -> @Report = requireSubject 'lib/report', {}
 
@@ -33,7 +33,7 @@ xdescribe 'Report', ->
       Given -> @another = @Report()
       Given -> @another.data 'total', 2
       When -> @report.combine @another
-      Then -> expect(@report.data('total')).toBe 2
+      Then -> expect(@report.data('total')).toBe 3
 
     describe '#populate (data:Array)', ->
 
