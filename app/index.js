@@ -1,3 +1,6 @@
+var memwatch = require('memwatch');
+memwatch.on('leak', function (leak) { console.log('leak', leak) });
+memwatch.on('stats', function (stats) { console.log('stats', stats) });
 /*
  * Get our express app up and running as a static resource provider
  */
