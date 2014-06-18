@@ -10,9 +10,11 @@ describe 'Monitor', ->
       populate: ->
         @data =
           in: 1
+  Given -> @app = listen: ->
 
   Given -> @Monitor = requireSubject 'lib/monitor', {
     './report': @Report
+    './../app': @app
   }
 
   describe '#', ->
@@ -131,3 +133,10 @@ describe 'Monitor', ->
       And -> expect(@res).toEqual @monitor
       And -> expect(@bus.message).toHaveBeenCalled()
       And -> expect(@builder.deliver).toHaveBeenCalled()
+
+    describe '#app', ->
+
+      When -> @res = @monitor.app()
+      Then -> expect(typeof @res.listen).toBe 'function'
+
+
