@@ -7,8 +7,9 @@ describe 'Monitor', ->
       constructor: ->
         if not (@ instanceof Report)
           return new Report
+      data: -> in: 1
       populate: ->
-        @data =
+        @_data =
           in: 1
   Given -> @app = listen: ->
 
