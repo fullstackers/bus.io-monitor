@@ -31,8 +31,10 @@ if (~module.parent) bus.use(monitor);
  * is everyone and the target is everyone.
  */
 
-bus.actor(function (socket, cb) { cb(null, 'everyone'); });
-bus.target(function (socket, params, cb) { cb(null, 'everyone'); });
+var actor = 'reportViewer';
+
+bus.actor(function (socket, cb) { cb(null, actor); });
+bus.target(function (socket, params, cb) { cb(null, actor); });
 
 /*
  * Whenever we get a monitor-report action, take the message
@@ -54,7 +56,7 @@ setInterval(function () {
   bus.message()
     .actor(monitor.options.actor)
     .action('update')
-    .target('everyone')
+    .target(actor)
     .content(report.data())
     .deliver();
 }, monitor.options.interval);
