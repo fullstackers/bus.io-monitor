@@ -7,6 +7,18 @@ describe 'Report', ->
     Given -> @res = @Report()
     Then -> expect(@res instanceof @Report).toBe true
 
+  describe '#(report:Report)', ->
+
+    Given -> @a = @Report()
+    When -> @b = @Report @a
+    Then -> expect(@a).toBe @b
+
+  describe '#(data:Object)', ->
+
+    Given -> @data = a: 1, 'a.b': 2, 'a.b.c': 3
+    When -> @res = @Report @data
+    Then -> expect(@res.data()).toEqual @data
+
   describe 'prototoype', ->
 
     Given -> @report = @Report()

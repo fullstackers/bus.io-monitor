@@ -168,17 +168,35 @@ monitor.on('report', function (report) {
 A `monitor` populates a `report` with data it receives from the `data` event.
 
 ```javascript
-
 var Report = require('bus.io-monitor').Report;
-
 ```
 
 ### Report#()
 
 Makes a new `report`.
 
-```
+```javascript
 var report = Report();
+```
+
+### Report#(report:Report)
+
+Returns the passed in `report`.
+
+```javascript
+var a = Report();
+var b = Report(a);
+assert.equal(a, b);
+```
+
+### Report#(data:Object)
+
+Creates a new report given the `data`.
+
+```javascript
+var data = { 'a':1, 'a.b':2, 'a.b.c': 3 };
+var report = Report(data);
+assert.equal(report.data(), data);
 ```
 
 ### Report#data()
