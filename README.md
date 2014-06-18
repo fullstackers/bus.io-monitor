@@ -141,9 +141,9 @@ can always start it again if you happen to clear it.
 monitor.setInterval();
 ```
 
-#### Events
+### Events
 
-##### data
+#### data
 
 Triggered each time we collect data from a `message`.
 
@@ -153,7 +153,7 @@ monitor.on('data', function (data) {
 });
 ```
 
-##### report
+#### report
 
 Triggered each time the `tick()` method is invoked.
 
