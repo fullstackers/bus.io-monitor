@@ -25,7 +25,7 @@ describe 'Monitor', ->
 
   describe '# (options:Object)', ->
 
-    Given -> @options = actor: 'me', target: 'you', action:'report'
+    Given -> @options = actor: 'me', target: 'you', action:'report', interval:1000
     When -> @res = @Monitor @options
     Then -> expect(@res instanceof @Monitor).toBe true
     And -> expect(@res instanceof events.EventEmitter).toBe true
@@ -48,6 +48,7 @@ describe 'Monitor', ->
 
     describe '#middleware (bus:Bus)', ->
 
+      Given -> spyOn(@monitor,'setInterval')
       Given -> spyOn(@bus.incomming(), 'use').andCallThrough()
       Given -> spyOn(@bus.incomming(), 'addListener').andCallThrough()
       Given -> spyOn(@bus.processing(), 'use').andCallThrough()
@@ -61,6 +62,7 @@ describe 'Monitor', ->
       And -> expect(@bus.processing().addListener).toHaveBeenCalledWith 'consumed', @monitor.onProcessingConsumed
       And -> expect(@bus.outgoing().use).toHaveBeenCalledWith @monitor.onOutgoing
       And -> expect(@bus.outgoing().addListener).toHaveBeenCalledWith 'consumed', @monitor.onOutgoingConsumed
+      And -> expect(@monitor.setInterval).toHaveBeenCalled()
 
     describe '#onIncomming (message:Message, socket:EventEmitter, next:Function)', ->
 
@@ -139,4 +141,14 @@ describe 'Monitor', ->
       When -> @res = @monitor.app()
       Then -> expect(typeof @res.listen).toBe 'function'
 
+    describe '#setInterval', ->
 
+      Given -> @a = @monitor.setInterval()
+      When -> @b = @monitor.setInterval()
+      Then -> expect(@a).toEqual @b
+
+    describe '#clearInterval', ->
+
+      Given -> @a = @monitor.setInterval()
+      When -> @monitor.clearInterval()
+      Then -> expect(@a._repeat).toBe false
