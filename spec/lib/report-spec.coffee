@@ -70,3 +70,12 @@ describe 'Report', ->
 
       Given -> @fn = => @report.key 'crap'
       Then -> expect(@fn).toThrow new Error('data must be an Array')
+
+    describe '#diff (report:Report)', ->
+
+      Given -> @report.data 'total', 1
+      Given -> @report.data 'stuff', 1
+      Given -> @another = @Report()
+      Given -> @another.data 'total', 2
+      When -> @res = @report.diff @another
+      Then -> expect(@res.data()).toEqual stuff: 1, total: -1
