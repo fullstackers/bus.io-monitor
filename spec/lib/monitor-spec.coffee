@@ -2,13 +2,32 @@ events = require 'events'
 
 describe 'Monitor', ->
 
-  Given -> @Monitor = requireSubject 'lib/monitor', {}
+  Given ->
+    @Report = class Report
+      constructor: ->
+        if not (@ instanceof Report)
+          return new Report
+      populate: ->
+        @data =
+          in: 1
+
+  Given -> @Monitor = requireSubject 'lib/monitor', {
+    './report': @Report
+  }
 
   describe '#', ->
 
     When -> @res = @Monitor()
     Then -> expect(@res instanceof @Monitor).toBe true
     And -> expect(@res instanceof events.EventEmitter).toBe true
+
+  describe '# (options:Object)', ->
+
+    Given -> @options = actor: 'me', target: 'you', action:'report'
+    When -> @res = @Monitor @options
+    Then -> expect(@res instanceof @Monitor).toBe true
+    And -> expect(@res instanceof events.EventEmitter).toBe true
+    And -> expect(@res.options).toEqual @options
 
   describe 'prototype', ->
 
@@ -73,3 +92,42 @@ describe 'Monitor', ->
 
       When -> @monitor.onOutgoingConsumed @message
       Then -> expect(@monitor.emit).toHaveBeenCalledWith 'data', ['outc', @message.actor(), @message.action(), @message.target()]
+
+    describe '#onData (data:Array)', ->
+
+      Given -> @data = ['in', @message.actor(), @message.action(), @message.target()]
+      Given -> spyOn(@monitor.report(),'populate')
+      When -> @monitor.onData @data
+      Then -> expect(@monitor.report().populate).toHaveBeenCalledWith @data
+
+    describe '#report (report:Report)', ->
+
+      Given -> @report = @Report()
+      When -> @res = @monitor.report @report
+      Then -> expect(@res).toEqual @monitor
+
+    describe '#report (report:Report)', ->
+
+      Given -> @report = @Report()
+      When -> @res = @monitor.report(@report).report()
+      Then -> expect(@res).toEqual @report
+
+    describe '#tick', ->
+
+      Given -> @monitor @bus
+      Given -> @builder = require('bus.io-common').Builder()
+      Given -> spyOn(@builder,'deliver')
+      Given -> spyOn(@bus,'message').andReturn(@builder)
+      Given -> @monitor.onIncomming @message, @socket, @next
+      Given -> @monitor.onIncommingConsumed @message
+      Given -> @monitor.onProcessing @message, @next
+      Given -> @monitor.onProcessingConsumed @message
+      Given -> @monitor.onOutgoing @message, @socket, @next
+      Given -> @monitor.onOutgoingConsumed @message
+      Given -> @report = @monitor.report()
+      When -> @res = @monitor.tick()
+      Then -> expect(@monitor.emit).toHaveBeenCalledWith 'report', @report
+      And -> expect(@monitor.report()).not.toEqual @report
+      And -> expect(@res).toEqual @monitor
+      And -> expect(@bus.message).toHaveBeenCalled()
+      And -> expect(@builder.deliver).toHaveBeenCalled()
