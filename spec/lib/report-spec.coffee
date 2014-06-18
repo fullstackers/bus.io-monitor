@@ -54,3 +54,19 @@ describe 'Report', ->
       Then -> expect(@report.data('a')).toBe 1
       Then -> expect(@report.data('a.b')).toBe 1
       Then -> expect(@report.data('a.b.c')).toBe 1
+
+    describe '#key (data:Array)', ->
+
+      Given -> @data = [
+        'Some special % event',
+        1,
+        new Object(),
+        '..Other    \n key'
+      ]
+      When -> @key = @report.key @data
+      Then -> expect(@key).toBe 'Some_special_event.1._object_Object_._Other_key' 
+
+    describe '#key (crap:mixed)', ->
+
+      Given -> @fn = => @report.key 'crap'
+      Then -> expect(@fn).toThrow new Error('data must be an Array')

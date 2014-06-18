@@ -105,6 +105,14 @@ Access the current `report` the `monitor` is populating.
 var report = monitor.report();
 ```
 
+### Monitor#report(report:Report)
+
+Setst he report to a new one.
+
+```javascript
+monitor.report(Report());
+```
+
 ### Monitor#app()
 
 Gets the built-in application that visual reports the data.
@@ -236,6 +244,16 @@ b.data('some.key', 1);
 
 a.combine(b);
 assert.equal(a.data('some.key'), 2);
+```
+
+### Report#key(data:Array)
+
+Converts the array of elements into a key that will be used in our report.
+
+```javascript
+var data = ['organism', 'insect', 'cricket'];
+var key = report.key(data);
+assert.equal(key, 'organism.insect.crieck');
 ```
 
 ### Report#populate(points:Array)
