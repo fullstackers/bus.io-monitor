@@ -11,18 +11,14 @@ socket.on('disconnect', function () {
 });
 
 socket.on('count', function (who, what) {
-  console.log('count', what);
   if (timeline.counts.length >= timeline.max) timeline.counts.shift();
   timeline.counts.push(what);
   combine(timeline.totals, what);
-  console.log('count', what);
-  console.log('timeline.totals', timeline.totals);
   plot(graph.counts, timeline.counts);
   $('#totals').html(JSON.stringify(timeline.totals,null,2));
 });
 
 socket.on('delta', function (who, what) {
-  console.log('delta', what);
   if (timeline.deltas.length >= timeline.max) timeline.deltas.shift();
   timeline.deltas.push(what);
   plot(graph.deltas, timeline.deltas);

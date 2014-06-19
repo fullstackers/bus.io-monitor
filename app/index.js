@@ -62,9 +62,7 @@ setInterval(function () {
   if (timeline.counts.length >= timeline.max) timeline.counts.shift();
   if (timeline.deltas.length >= timeline.max) timeline.deltas.shift();
   timeline.counts.push(count.data());
-  console.log('count', count.data());
   timeline.deltas.push(delta.data());
-  console.log('delta', delta.data());
   timeline.report.combine(count);
   timeline.current = Monitor.Report();
   bus.message().actor(monitor.options.actor).action('delta').target(actor).content(delta.data()).deliver();
