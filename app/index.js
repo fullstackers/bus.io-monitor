@@ -1,6 +1,7 @@
 /*
  * Get our express app up and running as a static resource provider
  */
+
 var express = require('express');
 var app = express();
 app.use(express.static(__dirname+'/public'));
@@ -9,6 +10,7 @@ app.use(express.static(__dirname+'/public'));
  * Create the http server, and if we are not being included
  * from another module, start the server.
  */
+
 var server = require('http').Server(app);
 if (~module.parent) server.listen(3000);
 
