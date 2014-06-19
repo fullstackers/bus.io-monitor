@@ -35,7 +35,7 @@ if (~module.parent) bus.use(monitor);
 
 bus.actor(function (socket, cb) { cb(null, actor); });
 bus.target(function (socket, params, cb) { cb(null, actor); });
-bus.socket(function (socket) { socket.emit('timeline', timeline.report.data(), timeline.diffs, timeline.max); });
+bus.socket(function (socket) { socket.emit('timeline', timeline.report.data(), timeline.counts, timeline.deltas, timeline.max); });
 
 /*
  * Whenever we get a monitor-report action, take the message
@@ -51,21 +51,22 @@ bus.on(monitor.options.action, function (message) {
 /*
  * Every interval lets take our current report, diff it from our
  * last report. We will then emit the diff, and reset the current
- * report.
+ * report. We will also send out the current report
  */
 
 setInterval(function () {
-  if (timeline.diffs.length >= timeline.max) timeline.diffs.shift();
-  var diff = timeline.current.diff(Monitor.Report(timeline.diffs[timeline.diffs.length-1]));
+  var count = timeline.current;
+  var delta = count.diff(Monitor.Report(timeline.counts[timeline.counts.length-1]));
+  if (timeline.counts.length >= timeline.max) timeline.counts.shift();
+  if (timeline.deltas.length >= timeline.max) timeline.deltas.shift();
+  timeline.counts.push(count.data());
+  console.log('count', count.data());
+  timeline.deltas.push(delta.data());
+  console.log('delta', delta.data());
+  timeline.report.combine(count);
   timeline.current = Monitor.Report();
-  timeline.diffs.push(diff.data());
-  timeline.report.combine(diff);
-  bus.message()
-    .actor(monitor.options.actor)
-    .action('update')
-    .target(actor)
-    .content(diff.data())
-    .deliver();
+  bus.message().actor(monitor.options.actor).action('delta').target(actor).content(delta.data()).deliver();
+  bus.message().actor(monitor.options.actor).action('count').target(actor).content(count.data()).deliver(); 
 }, monitor.options.interval);
 
 module.exports = server;
@@ -75,7 +76,11 @@ function Timeline (max) {
   if (!(this instanceof Timeline)) return new Timeline(max);
   this.report = Monitor.Report();
   this.current = Monitor.Report();
-  this.diffs = [];
+  this.deltas = [];
+  this.counts = [];
   this.max = max;
-  for (var i=0; i<max; i++) this.diffs[i] = {};
+  for (var i=0; i<max; i++) {
+    this.deltas[i] = {};
+    this.counts[i] = {};
+  }
 }
