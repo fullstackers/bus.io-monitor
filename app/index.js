@@ -13,7 +13,7 @@ var server = require('http').Server(app);
 if (~module.parent) server.listen(3000);
 
 /*
- * Create our bus.io instance, a report object to hold
+ * Create our bus.io instance, a timeline object to hold
  * our data, and a monitor object.  If this file is not
  * being included from another module, tell the bus.io
  * instance to use the monitor.
@@ -22,7 +22,8 @@ if (~module.parent) server.listen(3000);
 var bus = require('bus.io')(server);
 var Monitor = require('./..');
 var monitor = Monitor();
-var timeline = { report: Monitor.Report(), current: Monitor.Report(), diffs: [Monitor.Report().data()], max: 360 };
+var actor = 'reportViewer';
+var timeline = Timeline(120);
 
 if (~module.parent) bus.use(monitor);
 
@@ -32,11 +33,9 @@ if (~module.parent) bus.use(monitor);
  * to the client our current timeline.
  */
 
-var actor = 'reportViewer';
-
 bus.actor(function (socket, cb) { cb(null, actor); });
 bus.target(function (socket, params, cb) { cb(null, actor); });
-bus.socket(function (socket) { socket.emit('timeline', timeline.report.data(), timeline.diffs); });
+bus.socket(function (socket) { socket.emit('timeline', timeline.report.data(), timeline.diffs, timeline.max); });
 
 /*
  * Whenever we get a monitor-report action, take the message
@@ -70,3 +69,13 @@ setInterval(function () {
 }, monitor.options.interval);
 
 module.exports = server;
+
+// TODO refactor!
+function Timeline (max) {
+  if (!(this instanceof Timeline)) return new Timeline(max);
+  this.report = Monitor.Report();
+  this.current = Monitor.Report();
+  this.diffs = [];
+  this.max = max;
+  for (var i=0; i<max; i++) this.diffs[i] = {};
+}
