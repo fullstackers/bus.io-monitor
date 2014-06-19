@@ -22,19 +22,21 @@ if (~module.parent) server.listen(3000);
 var bus = require('bus.io')(server);
 var Monitor = require('./..');
 var monitor = Monitor();
-var report = Monitor.Report();
+var timeline = { report: Monitor.Report(), current: Monitor.Report(), diffs: [], max: 360 };
 
 if (~module.parent) bus.use(monitor);
 
 /*
  * IF the client sends us any message, lets assume that the actor
- * is everyone and the target is everyone.
+ * is everyone and the target is everyone. We also want to deliver
+ * to the client our current timeline.
  */
 
 var actor = 'reportViewer';
 
 bus.actor(function (socket, cb) { cb(null, actor); });
 bus.target(function (socket, params, cb) { cb(null, actor); });
+bus.socket(function (socket) { socket.emit('timeline', timeline); });
 
 /*
  * Whenever we get a monitor-report action, take the message
@@ -43,21 +45,28 @@ bus.target(function (socket, params, cb) { cb(null, actor); });
  */
 
 bus.on(monitor.options.action, function (message) {
-  report.combine(Monitor.Report(message.content()))
+  timeline.current.combine(Monitor.Report(message.content()))
   message.deliver();
 });
 
 /*
- * Every interval lets take our current report and deliver it
- * to everyone.
+ * Every interval lets take our current report, diff it from our
+ * last report. We will then emit the diff, and reset the current
+ * report.
  */
 
 setInterval(function () {
+  if (timeline.diffs.length >= max) timeline.diffs.shift();
+  var last = timeline.diffs[timeline.diffs.length-1];
+  var diff = last.diff(timeline.current);
+  timeline.current = Report();
+  timeline.diffs.push(diff);
+  timeline.report.combine(diff);
   bus.message()
     .actor(monitor.options.actor)
     .action('update')
     .target(actor)
-    .content(report.data())
+    .content(diff)
     .deliver();
 }, monitor.options.interval);
 
