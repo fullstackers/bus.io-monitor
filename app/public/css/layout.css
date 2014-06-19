@@ -195,8 +195,12 @@ input[type=text]:focus {
   background: #ffffff;
 }
 
-#data {
+pre {
   font-size:1.5em;
   font-weight:bold;
   color:#999;
+}
+
+.graph {
+  height:300px;;
 }
