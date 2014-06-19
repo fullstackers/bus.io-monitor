@@ -1,6 +1,6 @@
 {
   "name": "bus.io-monitor",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "Bus.io application monitoring middleware",
   "main": "index.js",
   "scripts": {
