@@ -22,7 +22,7 @@ if (~module.parent) server.listen(3000);
 var bus = require('bus.io')(server);
 var Monitor = require('./..');
 var monitor = Monitor();
-var timeline = { report: Monitor.Report(), current: Monitor.Report(), diffs: [], max: 360 };
+var timeline = { report: Monitor.Report(), current: Monitor.Report(), diffs: [Monitor.Report().data()], max: 360 };
 
 if (~module.parent) bus.use(monitor);
 
@@ -36,7 +36,7 @@ var actor = 'reportViewer';
 
 bus.actor(function (socket, cb) { cb(null, actor); });
 bus.target(function (socket, params, cb) { cb(null, actor); });
-bus.socket(function (socket) { socket.emit('timeline', timeline); });
+bus.socket(function (socket) { socket.emit('timeline', timeline.report.data(), timeline.diffs); });
 
 /*
  * Whenever we get a monitor-report action, take the message
@@ -56,17 +56,16 @@ bus.on(monitor.options.action, function (message) {
  */
 
 setInterval(function () {
-  if (timeline.diffs.length >= max) timeline.diffs.shift();
-  var last = timeline.diffs[timeline.diffs.length-1];
-  var diff = last.diff(timeline.current);
-  timeline.current = Report();
-  timeline.diffs.push(diff);
+  if (timeline.diffs.length >= timeline.max) timeline.diffs.shift();
+  var diff = timeline.current.diff(Monitor.Report(timeline.diffs[timeline.diffs.length-1]));
+  timeline.current = Monitor.Report();
+  timeline.diffs.push(diff.data());
   timeline.report.combine(diff);
   bus.message()
     .actor(monitor.options.actor)
     .action('update')
     .target(actor)
-    .content(diff)
+    .content(diff.data())
     .deliver();
 }, monitor.options.interval);
 

@@ -1,3 +1,7 @@
+var totals = {};
+var points = [];
+var max = 360;
+
 var socket = io.connect();
 
 socket.on('connect', function () {
@@ -9,5 +13,23 @@ socket.on('disconnect', function () {
 });
 
 socket.on('update', function (who, what) {
-  $('#data').html(JSON.stringify(what,null,2));
+  if (points.length >= max) points.shift();
+  points.push(what);
+  combine(totals, what);
+  plot();
 });
+
+socket.on('timeline', function (report, diffs) {
+  totals = report || {};
+  points = diffs || [report];
+  plot();
+});
+
+function plot () {
+  $('#totals').html(JSON.stringify(totals,null,2));
+  $('#current').html(JSON.stringify(points[points.length-1],null,2));
+}
+
+function combine (a, b) {
+  for (var k in b) a[k] = a[k] ? (a[k] + b[k]) : b[k];
+}
