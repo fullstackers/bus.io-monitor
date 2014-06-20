@@ -1,9 +1,35 @@
 /*
- * Get our express app up and running as a static resource provider
+ * if we do not have a prent and we are the master fork some children
+ */
+
+if (~module.parent) {
+  var cluster = require('cluster');
+  if (cluster.isMaster) {
+    for (var i=0; i<require('os').cpus().length; i++) cluster.fork();
+    cluster.on('exit', function () { cluster.fork() });
+    return;
+  }
+
+  /*
+   * Set up session support with redis, if we do not have a parrent.
+   */
+  var expressSession = require('express-session');
+  var connectRedis = require('connect-redis')(expressSession);
+  var cookieParser = require('cookie-parser');
+  var config = { session: { secret:'some secret', key: 'bus.io-monitor', store: new connectRedis() } };
+  var busSession = require('bus.io-session');
+}
+
+/*
+ * Get our express app up and running as a static resource provider, we are also supporting
+ * the use of sessions with redis and bus.io-session.
  */
 
 var express = require('express');
 var app = express();
+app.set('port', process.env.PORT || 3000);
+if (~module.parent) app.use(cookieParser());
+app.use(expressSession(config.session));
 app.use(express.static(__dirname+'/public'));
 
 /*
@@ -12,13 +38,13 @@ app.use(express.static(__dirname+'/public'));
  */
 
 var server = require('http').Server(app);
-if (~module.parent) server.listen(3000);
+if (~module.parent) server.listen(app.get('port'), function () { console.log('bus.io-monitor app running on port %s', app.get('port')) });
 
 /*
  * Create our bus.io instance, a timeline object to hold
  * our data, and a monitor object.  If this file is not
  * being included from another module, tell the bus.io
- * instance to use the monitor.
+ * instance to use the monitor, and the busSession.
  */
 
 var bus = require('bus.io')(server);
@@ -27,6 +53,7 @@ var monitor = Monitor();
 var actor = 'reportViewer';
 var timeline = Timeline(120);
 
+if (~module.parent) bus.use(busSession(config.session));
 if (~module.parent) bus.use(monitor);
 
 /*

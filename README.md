@@ -4,7 +4,7 @@
 
 ![Bus.IO](https://raw.github.com/turbonetix/bus.io/master/logo.png)
 
-Monitor you `bus.io` apps with `bus.io-monitor` middleware.
+Monitor you [bus.io](https://github.com/turbonetix/bus.io "bus.io") apps with `bus.io-monitor`.
 
 ```javascript
 var bus = require('bus.io')(3000);
@@ -42,42 +42,20 @@ monitor.on('report', function (report) {
 bus.use(monitor);
 ```
 
-The `monitor` has a built-in application that will aggregate `reports` and send them to its clients.
+The `monitor` has a built-in *cheesy* app that will aggregate `reports` and send them to its clients.
 
 ```javascript
 var monitor = require('bus.io-monitor');
 monitor.app().listen(3030);
 ```
 
-You could use the app in your `master` process if you are using `cluster`.
+You can also just run the app too.
 
 ```javascript
-var cluster = require('cluster');
-if (cluster.isMaster) {
-
-  var monitor = require('bus.io-monitor');
-  monitor.app().listen(3030);
-
-  for (var i=0; i<require('os').cpus().length; i++)
-    cluster.fork();
-    
-  return;
-}
-
-// I am the worker!
-
-var express = require('express');
-var app = express();
-app.use(express.static(__dirname + '/public'));
-
-var server = require('http').Server(app).listen(3000);
-
-var session = require('bus.io-session');
-var monitor = require('bus.io-monitor');
-var bus = require('bus.io')(server);
-bus.use(monitor());
-bus.use(session());
-````
+$ cd bus.io-monitor
+$ npm install
+$ PORT=3000 node app/
+```
 
 # API
 
