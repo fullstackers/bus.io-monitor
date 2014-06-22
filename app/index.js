@@ -15,7 +15,7 @@ if (~module.parent) {
    */
   var expressSession = require('express-session');
   var connectRedis = require('connect-redis')(expressSession);
-  var cookieParser = require('cookie-parser');
+  var cookieParser = require('cookie-parser')();
   var config = { session: { secret:'some secret', key: 'bus.io-monitor', store: new connectRedis() } };
   var busSession = require('bus.io-session');
 }
@@ -28,7 +28,7 @@ if (~module.parent) {
 var express = require('express');
 var app = express();
 app.set('port', process.env.PORT || 3000);
-if (~module.parent) app.use(cookieParser());
+if (~module.parent) app.use(cookieParser);
 app.use(expressSession(config.session));
 app.use(express.static(__dirname+'/public'));
 
