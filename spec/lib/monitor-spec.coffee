@@ -11,6 +11,7 @@ describe 'Monitor', ->
       populate: ->
         @_data =
           in: 1
+
   Given -> @app = listen: ->
 
   Given -> @Monitor = requireSubject 'lib/monitor', {
